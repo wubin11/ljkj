@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>查询</title>
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app" v-cloak>
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#">XX记账</a>
+					<p class="navbar-text navbar-right"><a href="#" class="navbar-link" @click="signout()">退出</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/add.html" class="navbar-link">记账</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/get.html" class="navbar-link">查询</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/gettype.html" class="navbar-link">类别查询</a></p>
+					<p class="navbar-text navbar-right">欢迎<a href="/user/my.html" class="navbar-link">{{user.name}}</a></p>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<form class="form-inline">
+						<div class="form-group">
+							<input type="date" class="form-control" v-model="startDate">
+							<label for="exampleInputName2">~</label>
+						</div>
+						<div class="form-group">
+							<input type="date" class="form-control" v-model="endDate">
+						</div>
+						<button type="button" id="hide" class="btn btn-default" @click="searchOrdersFunction()">查询</button>
+					</form>
+				</div>
+				<div class="col-xs-12">
+					<span class="h3">总收入：</span><span class="h1">{{sumIn}}</span>
+					<span class="h3">总支出：</span><span class="h1">{{sumOut}}</span>
+				</div>
+				<div class="col-xs-12">
+					<table class="table table-striped table-bordered table-hover table-condensed">
+						<tr>
+							<th>分类</th>
+							<th>金额</th>
+							<th>时间</th>
+						</tr>
+						<tr v-for="o in orderList">
+							<td v-for="t in types" v-if="t.id==o.typeId">
+								<span v-if="t.income==0" class="text-danger">
+									{{t.name}}
+								</span>
+								<span v-if="t.income==1" class="text-success">
+									{{t.name}}
+								</span>
+							</td>
+							<td>{{o.money}}</td>
+							<td>{{o.date}}</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div id="modal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close"></button>
+						<h4 class="modal-title">{{message}}</h4>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/vue.min.js"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el : '#app',
+			data : {
+				sumIn : '',
+				sumOut : '',
+				types : [ ],
+				message : '',
+				orderList : [ ],
+				neworderList : [ ],
+				user : { },
+				order : { },
+				startDate:'',
+				endDate:''
+			},
+			methods : {
+				getTypes : function(){
+					$.ajax({
+						type:'get',
+						url:'/getTypes',
+						success:function(result){
+							if(result.code == 0){
+								app.types = result.message;
+							}else{
+								alert('出现了未知错误，查询账目分类失败');
+							}
+						}
+					});
+				},
+				getOrder : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getOrder',
+						success : function(result){
+							if(result.code == 0){
+								app.orderList = result.message;
+							}else{
+								// 失败
+							}
+						}
+					});
+				},
+				/* getByDate : function(){
+					 $.ajax({
+						 type:'GET',
+						 url:'/getByDate',
+						 data : app.order,
+						 success : function(result){
+							 app.neworderList=result;
+						 }
+					 });
+				}, */
+				searchOrdersFunction : function() {
+					if (app.startDate == "" || app.endDate == "") {
+						app.message = "请输入日期";
+						//console.log(app.message);
+						$('#myModal').modal('show');
+					} else {
+						app.startDate.replace('/', '-');
+						app.endDate.replace('/', '-');
+						var params = "startDate=" + app.startDate + "&endDate="
+								+ app.endDate;
+						console.log(params);
+						$.ajax({
+							url : '/searchOrders',
+							type : 'GET',
+							async : 'true',
+							contentType : 'application/x-www-form-urlencoded',
+							data : params,
+							success : function(result) {
+								if (result.code == 0) {
+									app.orderList = result.message;
+									$('#myModal2').modal('show');
+								} else {
+									app.message = result.message;
+									console.log(app.message);
+								}
+							}
+						});
+					}
+
+				},
+
+				signout : function(){
+					$.ajax({
+						type : 'post',
+						url : '/signout',
+						success : function(result){
+							if(result.code == 0){
+								window.location.href = '/user/signin.html';
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				getSum : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getSum',
+						success : function(result){
+							if(result.code == 0){
+								app.sumIn = result.message.sumIn;
+								app.sumOut = result.message.sumOut;
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				
+				checkSignin : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getSigninUser',
+						async : false,
+						success : function(result){
+							if(result.code == 0){
+								app.user = result.message;
+								app.getTypes();
+								app.getOrder();
+								app.getSum();
+							}else{
+								window.location.href = '/user/signin.html';
+							}
+						}
+					});
+				}
+			}
+		});
+		$(function() {
+			app.checkSignin();
+		});
+	</script>
+</body>
+</html>

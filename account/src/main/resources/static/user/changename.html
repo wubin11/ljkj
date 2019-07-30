@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>查询</title>
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app" v-cloak class="container">
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#">XX记账</a>
+					<p class="navbar-text navbar-right"><a href="#" class="navbar-link" @click="signout()">退出</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/add.html" class="navbar-link">记账</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/get.html" class="navbar-link">查询</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/gettype.html" class="navbar-link">类别查询</a></p>
+					<p class="navbar-text navbar-right">欢迎<a href="/user/my.html" class="navbar-link">{{user.name}}</a></p>
+				</div>
+			</div>
+		</nav>
+        <div calss="row">
+        <p>修改姓名：</p>
+		<input v-model="newname" class="form-control">
+        </div>
+        <button @click="changeName()" class="btn">确认</button>
+		<div id="modal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close"></button>
+						<h4 class="modal-title">{{message}}</h4>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/vue.min.js"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el : '#app',
+			data : {
+				sumIn : '',
+				sumOut : '',
+				types : [ ],
+				message : '',
+				orderList : [ ],
+				user : { },
+				newname:'',
+				
+			},
+			
+			methods : {
+				getTypes : function(){
+					$.ajax({
+						type:'get',
+						url:'/getTypes',
+						success:function(result){
+							if(result.code == 0){
+								app.types = result.message;
+							}else{
+								alert('出现了未知错误，查询账目分类失败');
+							}
+						}
+					});
+				},
+				getOrder : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getOrder',
+						success : function(result){
+							if(result.code == 0){
+								app.orderList = result.message;
+							}else{
+								// 失败
+							}
+						}
+					});
+				},
+				signout : function(){
+					$.ajax({
+						type : 'post',
+						url : '/signout',
+						success : function(result){
+							if(result.code == 0){
+								window.location.href = '/user/signin.html';
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				getSum : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getSum',
+						success : function(result){
+							if(result.code == 0){
+								app.sumIn = result.message.sumIn;
+								app.sumOut = result.message.sumOut;
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				checkSignin : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getSigninUser',
+						async : false,
+						success : function(result){
+							if(result.code == 0){
+								app.user = result.message;
+								app.getTypes();
+								app.getOrder();
+								app.getSum();
+							}else{
+								window.location.href = '/user/signin.html';
+							}
+						}
+					});
+				},
+				changeName : function(){
+					$.ajax({
+						 type:'POST',
+						 url:'/changeName',
+						 data : {'name':app.newname},
+						 success : function(result){
+							 if(result.code==0){
+						     app.user.name=app.newname;
+						     app.newname='';
+							 alert("修改成功");
+							 window.location.href = '/user/my.html';
+							 }
+						 }
+					});
+				}
+			}
+		});
+		
+		$(function() {
+			app.checkSignin();
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>记账</title>
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app" v-cloak>
+		<nav class="navbar navbar-inverse">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#">XX记账</a>
+					<p class="navbar-text navbar-right"><a href="#" class="navbar-link" @click="signout()">退出</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/add.html" class="navbar-link">记账</a></p>
+					<p class="navbar-text navbar-right"><a href="/order/get.html" class="navbar-link">查询</a></p>
+					<p class="navbar-text navbar-right">欢迎    <a href="/user/my.html" class="navbar-link" > {{user.name}}</a></p>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container">
+			<div class="row">
+				<div>
+					<p>类型：<a href="/type/type.html">编辑</a></p>
+					<select class="form-control" v-model="order.typeId">
+						<option disabled="disabled">支出：</option>
+						<option v-for="t in types" v-if="t.income==0" :value="t.id">{{t.name}}</option>
+						<option disabled="disabled">收入：</option>
+						<option v-for="t in types" v-if="t.income==1" :value="t.id">{{t.name}}</option>
+					</select> 
+					<p>金额：</p>
+					<input class="form-control" v-model="order.money">
+					<p>时间:</p>
+					<input type="date" v-model="order.date">
+					<button class="btn" @click="addOrder()">记录</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="modal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close"></button>
+						<h4 class="modal-title">{{message}}</h4>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/vue.min.js"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el : '#app',
+			data : {
+				types : [ ],
+				message : '',
+				order : { },
+				user : { }
+			},
+			methods : {
+				getTypes : function(){
+					$.ajax({
+						type:'get',
+						url:'/getTypes',
+						success:function(result){
+							if(result.code == 0){
+								app.types = result.message;
+							}else{
+								alert('出现了未知错误，查询账目分类失败');
+							}
+						}
+					});
+				},
+				addOrder : function(){
+					$.ajax({
+						type : 'post',
+						url : '/addOrder',
+						data : app.order,
+						success : function(result){
+							if(result.code == 0){
+								app.message = "记账成功";
+								$('#modal').modal('show');
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				signout : function(){
+					$.ajax({
+						type : 'post',
+						url : '/signout',
+						success : function(result){
+							if(result.code == 0){
+								window.location.href = '/user/signin.html';
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				},
+				show : function(){
+					$.ajax({
+						type : 'post',
+						url : '/showmy',
+						success : function(result){
+							if(result.code == 0){
+								window.location.href = '/user/my.html';
+							}
+						}
+					});
+				},
+				checkSignin : function(){
+					$.ajax({
+						type : 'get',
+						url : '/getSigninUser',
+						async : false,
+						success : function(result){
+							if(result.code == 0){
+								app.user = result.message;
+								app.getTypes();// 获取可选的记账类型
+							}else{
+								window.location.href = '/user/signin.html';
+							}
+						}
+					});
+				}
+			}
+		});
+		$(function() {
+			app.checkSignin();// 验证登录
+		});
+	</script>
+</body>
+</html>

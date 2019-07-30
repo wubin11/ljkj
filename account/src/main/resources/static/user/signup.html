@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>注册</title>
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app" v-cloak>
+		<div class="container">
+			<div class="row">
+				<div>
+				    <h5>用户名：</h5>
+					<input class="form-control" v-model="user.username">
+					<h5>密码：</h5>
+					<input class="form-control" v-model="user.password" type="password">
+					<h5>确认密码：</h5>
+					<input class="form-control" v-model="user.password2" type="password">
+					<a href="/user/signin.html">已经注册过了？来登录吧！</a>
+					<button class="btn" @click="signup()">注册</button>
+				</div>
+			</div>
+		</div>
+		
+		<div id="modal" class="modal fade" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+						</button>
+						<h4 class="modal-title">{{message}}</h4>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/vue.min.js"></script>
+	<script type="text/javascript">
+		var app = new Vue({
+			el : '#app',
+			data : {
+				user : { },
+				message : ''
+			},
+			methods : {
+				signup : function(){
+					$.ajax({
+						url : '/signup',
+						type : 'post',
+						data : app.user,
+						success : function(result){
+							if(result.code == 0){
+								// 成功
+								app.message = '注册成功';
+								$('#modal').modal('show');
+							}else{
+								app.message = result.message;
+								$('#modal').modal('show');
+							}
+						}
+					});
+				}
+			}
+		});
+		$(function() {
+			
+		});
+	</script>
+</body>
+</html>
