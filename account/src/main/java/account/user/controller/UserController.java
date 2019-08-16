@@ -97,6 +97,9 @@ public class UserController {
 	public ResponseInfo changeName(User newname){
 		service.changeName(newname);
 		
+		
+		System.out.println("ddwdwd");
+		
 		return new ResponseInfo();
 	}
 }
