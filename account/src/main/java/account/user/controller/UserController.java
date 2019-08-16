@@ -18,27 +18,27 @@ public class UserController {
 	UserService service;
 	
 	/**
-	 * 注册：
+	 * 娉ㄥ唽锛�
 	 */
 	@PostMapping("/signup")
 	@ResponseBody
 	public ResponseInfo signup(User user){
 		ResponseInfo info = new ResponseInfo();
 		/*
-		 * 验证用户名、密码：6~12位之间
+		 * 楠岃瘉鐢ㄦ埛鍚嶃�佸瘑鐮侊細6~12浣嶄箣闂�
 		 */
 		if(user.getUsername().length() < 6 || user.getUsername().length() > 12) {
 			info.setCode(1);
-			info.setMessage("用户名长度应在6~12位之间");
+			info.setMessage("鐢ㄦ埛鍚嶉暱搴﹀簲鍦�6~12浣嶄箣闂�");
 			return info;
 		}
 		if(user.getPassword().length() < 6 || user.getPassword().length() > 12) {
 			info.setCode(1);
-			info.setMessage("密码长度应在6~12位之间");
+			info.setMessage("瀵嗙爜闀垮害搴斿湪6~12浣嶄箣闂�");
 			return info;
 		}
 		/*
-		 * 注册
+		 * 娉ㄥ唽
 		 */
 		String result = service.signup(user);
 		if(result == null) {
@@ -51,7 +51,7 @@ public class UserController {
 	}
 
 	/**
-	 * 登录：
+	 * 鐧诲綍锛�
 	 */
 	@PostMapping("/signin")
 	@ResponseBody
@@ -66,17 +66,18 @@ public class UserController {
 	}
 	
 	/**
-	 * 退出
+	 * 閫�鍑�
 	 */
 	@PostMapping("/signout")
 	@ResponseBody
 	public ResponseInfo signout(HttpSession session) {
 		session.removeAttribute("user");
-		return new ResponseInfo();
+		System.out.println("第二次");
+		return new ResponseInfo()
 	}
 	
 	/**
-	 * 获取当前登录人信息
+	 * 鑾峰彇褰撳墠鐧诲綍浜轰俊鎭�
 	 */
 	@GetMapping("/getSigninUser")
 	@ResponseBody
@@ -85,7 +86,7 @@ public class UserController {
 		Object user = session.getAttribute("user");
 		if(user == null) {
 			info.setCode(1);
-			info.setMessage("当前未登录");
+			info.setMessage("褰撳墠鏈櫥褰�");
 		}else {
 			info.setMessage(user);
 		}
