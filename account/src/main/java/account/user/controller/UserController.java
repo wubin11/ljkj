@@ -86,7 +86,7 @@ public class UserController {
 		Object user = session.getAttribute("user");
 		if(user == null) {
 			info.setCode(1);
-			info.setMessage("褰撳墠鏈櫥褰�");
+			info.setMessage(".....");
 		}else {
 			info.setMessage(user);
 		}
@@ -96,10 +96,6 @@ public class UserController {
 	@ResponseBody
 	public ResponseInfo changeName(User newname){
 		service.changeName(newname);
-		
-		
-		System.out.println("ddwdwd");
-		
 		return new ResponseInfo();
 	}
 }
